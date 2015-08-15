@@ -1,0 +1,83 @@
+---
+output:
+  html_document:
+    keep_md: yes
+  pdf_document: default
+---
+
+
+#Statistical Inference Project 1
+##Exploring Asymptotics of the Exponential Distribution
+###Chris Jones
+
+In this document I will investigate the exponential distribution in R and compare it with the Central Limit Theorem.
+
+The Central Limit Theorem states that given a distribution with mean $mu$ and variance $\sigma^{2}$, the sampling distribution of the mean approaches a normal distribution with mean $mu$ and variance $\frac {\sigma^{2}}{N}$. Counter-intuitively, the sampling distribution of the mean approaches a normal distribution regardless of the shape of the original distribution.
+
+
+```{r}
+library(ggplot2) #load the required packages
+```
+
+Let's set the parameters:
+
+```{r}
+lambda <- 0.2 #the rate of the exponential distribution
+mu <- 1/lambda #the mean of the exponential distribution
+n <- 40 #numbers of exponential numbers to be drawn
+nsim <- 1000 #numbers of simulations to be performed
+```
+
+## Sample and Theoretical Mean
+
+The theoretical mean of an exponential distribution with rate $\lambda$ is:
+
+$\mu= \frac{1}{\lambda}$ 
+
+```{r}
+mu <- 1/lambda
+mu
+```
+
+Let $\bar X$ be the sample mean of 1000 sets of 40 random exponential distributions with $\lambda = 0.2$
+
+```{r}
+set.seed(144) #set the seed for reproducibility
+
+expDist <- matrix(data= NA, nrow = nsim, ncol = n) #empty matrix with 1000 rows and 40 columns
+for(i in 1:nsim) {#for each row of the matrix,
+	expDist[i,] <- rexp(n = n, rate = lambda) #draw 40 random numbers from the exponential distribution
+}
+means <- rowMeans(expDist) 
+xbar <- mean(means)
+xbar
+```
+
+$\bar X$ and $\mu$ are almost identical, as the Central Limit Theorem predicts.
+
+## Sample and Theoretical Variance
+
+The expected variance  of our sample of 1000 means is $\frac{\frac{1}{\lambda^{2}}}{40} = 0.625$. 
+
+```{r}
+var(means)
+```
+
+The theoretical and the sample variance are very similar. This matches the expectations of the Central Limit Theorem.
+
+## Distribution
+
+The Central Limit Theorem states that the means of our 1000 simulations should approximate a distribution:  $N(\frac{1}{0.2}, \frac{\frac{1}{0.2}}{\sqrt{40}})$. The histogram
+
+```{r echo = FALSE}
+df <- as.data.frame(means - mu)
+ggplot(data = df) + 
+	aes(x = means) +
+	geom_histogram(binwidth = 0.4, color = "black", fill = "white", aes(y=..density..)) +
+	stat_function(aes(x = c(1.5, 8.5)), fun = dnorm, arg = list(mean = 5 , sd = sqrt(0.625)), colour = "red", size = 1) +
+	xlab("Sample mean") +
+	ylab("Density") +
+	ggtitle("Sample distribution vs. theoretical distribution")
+```
+
+Again, our sample and theoretical distributions are very close to one another.
